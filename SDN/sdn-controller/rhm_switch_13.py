@@ -108,7 +108,7 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
 
         #self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
         print("==================================")
-        print("|        Packet iIn Event        |")
+        print("|        Packet In Event        |")
         print("==================================")
         print("dpid => ", dpid)
         print("src => ", src)

@@ -1,22 +1,25 @@
-from ryu.base import app_manager
-from ryu.controller import ofp_event
-from ryu.controller import event
-from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
-from ryu.controller.handler import set_ev_cls
-from ryu.ofproto import ofproto_v1_3
-from ryu.lib.packet import packet
-from ryu.lib.packet import ethernet
-from ryu.lib.packet import icmp
-from ryu.lib.packet import arp
-from ryu.lib.packet import ipv4
-from ryu.lib import hub
-from random import randint, seed
-from time import time
- 
-# Main Application
-class RandomHostMutation_Switch(app_manager.RyuApp):
+# ============================================
+# ||        基本Ryu Switch Conreoller       ||
+# ============================================
 
-    # APP 初始化
+# 匯入Ryu基本組件模組 | Ryu app核心管理組件
+from ryu.base import app_manager
+# 匯入控制器模組 | OpenFlow事件定義組件
+from ryu.controller import ofp_event
+# 匯入事件處理模組 | Switch 配發模式組件
+from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
+# 匯入事件處理模組 | 事件監聽組件
+from ryu.controller.handler import set_ev_cls
+# 匯入OpenFlow有線協議模組 | OpenFlow 1.3版本定義解析組件
+from ryu.ofproto import ofproto_v1_3
+# 匯入流行協議(如TCP/IP)之解析器實現模組 | 封包組件
+from ryu.lib.packet import packet
+# 匯入流行協議(如TCP/IP)之解析器實現模組 | 乙太網路協定組件
+from ryu.lib.packet import ethernet
+
+class RandomHostMutation_Switch(app_manager.RyuApp):
+    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
+
     def __init__(self, *_args, **_kwargs):
         '''
             << Constructor >> :
@@ -24,9 +27,10 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
         '''
         # 繼承 RyuApp 類別並初始化 RyuApp 之初始設置
         super(RandomHostMutation_Switch, self).__init__(*_args, **_kwargs)
+        # 基於ARP協議，紀錄學習實體位址(Mac Address)與端口(port)之對映關係表
         self.mac_to_port = {}
     
-    # Switch 功能處理器
+    # 引入事件監聽器，
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
         '''
@@ -36,12 +40,15 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
                 3. 我們儲存 switch 訊息到 datapath 成員變數。
                 4. 新增 miss flow entry table 到 switch 中。
         '''
+        # 獲取事件來自發送方switch與接收方controller之間的連接描述 => datapath
         datapath = ev.msg.datapath
+        # 獲取Openflow協議實例與解析器
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
-        # Install table-miss flow entry
+        # 設置match配對為任何來源
         match = parser.OFPMatch()
+        # 設置操作動作將所有數據包輸出到controller端口
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
                                           
@@ -56,26 +63,28 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
         print("..")
         print("..")
 
+        # 增加優先權為0(最低優先權)之Table-miss Flow Entry
         self.add_flow(datapath, 0, match, actions)
 
-    # OpenFlow 流表生產器
     def add_flow(self, datapath, priority, match, actions, buffer_id=None):
         '''
             << 流表生產器 >> :
                 1. 新增流表規則至 Switch。
         '''
+        # 獲取Openflow協議實例與解析器
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
-        # construct flow_mod message and send it
+        # 設置包含操作動做參數且為新增類型的流表指令
         inst = [parser.OFPInstructions(ofproto.OFPIT_APPLY_ACTIONS,
                                        actions)]
 
+        # Controller依照所設置的參數來調整流表
         mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
                                 match=match, instructions=inst)
+        # Controller向Switch下達新的流表訊息
         datapath.send_msg(mod)
 
-    # 封包輸入處理器
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         '''
@@ -108,7 +117,7 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
 
         #self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
         print("==================================")
-        print("|        Packet iIn Event        |")
+        print("|        Packet In Event        |")
         print("==================================")
         print("dpid => ", dpid)
         print("src => ", src)
