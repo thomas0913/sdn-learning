@@ -1,0 +1,22 @@
+========================================
+||    Simple mininet testing command  ||
+========================================
+
+<< 啟動 Mininet 環境 >>
+sudo mn --topo single ,3 --mac --switch ovsk --controller remote -x
+
+<< 查看 Open vSwitch 的狀態(switch: s1) >>
+    ~ # ovs-vsctl show
+    ~ # ovs-dpctl show
+    ~ # ovs-vsctl set Bridge s1 protocols=OpenFlow13
+            ==>> 來設定 OpenFlow 的版本為 1.3
+    ~ # ovs-ofctl -O OpenFlow13 dump-flows s1
+            ==>> 檢查 Flow table
+
+<< 執行 Ryu 應用程式(controller: c0) >>
+    ~ # ryu-manager --verbose ryu.app.simple_switch_13
+
+<< 執行 tcpdump 以確認封包有確實被接收(host: h1、h2、h3) >>
+    ~ # tcpdump -en -i h1-eth0
+    ~ # tcpdump -en -i h2-eth0
+    ~ # tcpdump -en -i h3-eth0
