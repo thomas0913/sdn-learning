@@ -83,7 +83,7 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
-        inst = [parser.OFPInstructions(ofproto.OFPIT_APPLY_ACTIONS,
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
                                        actions)]
         if buffer_id :
             if hard_timeout == None:

@@ -4,6 +4,8 @@
 
 << 啟動 Mininet 環境 >>
 sudo mn --topo single ,3 --mac --switch ovsk --controller remote -x
+    or 
+sudo mn --custom ./rhm_topo_model.py --topo mytopo --mac --switch ovsk --controller remote
 
 << 查看 Open vSwitch 的狀態(switch: s1) >>
     ~ # ovs-vsctl show

@@ -78,7 +78,7 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
         parser = datapath.ofproto_parser
 
         # 設置包含操作動做參數且為新增類型的流表指令
-        inst = [parser.OFPInstructions(ofproto.OFPIT_APPLY_ACTIONS,
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
                                        actions)]
 
         # Controller依照所設置的參數來調整流表
@@ -113,7 +113,7 @@ class RandomHostMutation_Switch(app_manager.RyuApp):
         eth = pkt.get_protocols(ethernet.ethernet)[0]
 
         # ignore lldp packet(設備資訊封包)
-        if eth.ethertype == packet.ether_types.ETH_TYPE_LLDP:
+        if eth.ethertype == 0x88cc:
             return
         
         # 封包目的Mac地址
