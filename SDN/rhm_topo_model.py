@@ -13,7 +13,7 @@ topology enables one to pass in '--topo=mytopo' from the command line.
 """
 
 from mininet.topo import Topo
-
+ 
 class RhmTopo( Topo ):
     "Simple topology example."
 
