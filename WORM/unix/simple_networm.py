@@ -282,6 +282,7 @@ interface_list.remove( LOOPBACK_INTERFACE )
 
 for interface in interface_list:
     print("Interface: ", interface)
+	
 	# 取得當前系統之IP
     ip_addr = getMyIP( interface )
 
