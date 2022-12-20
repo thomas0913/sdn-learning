@@ -18,10 +18,12 @@ if any( arg in ( "-c", "--clean" ) for arg in sys.argv):
 interface_list = netifaces.interfaces()
 #interface_list.remove( WormTools.LOOPBACK_INTERFACE )
 
-print(interface_list)
-
 for interface in interface_list:
     print("Interface: ", interface)
 
+    # 取得當前系統之IP
+    ip_addr = WormTools.getMyIP( interface )
+
+    print(ip_addr)
 
 print("\nThis is the end of script ~~~")

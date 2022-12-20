@@ -1,10 +1,16 @@
-import os
+import socket
+import paramiko
 
-list_dir = os.listdir("/Users/USER/Desktop/weak_point")
-fd = os.open("/Users/USER/Desktop/weak_point/worm.py", os.O_RDONLY)
+def tryCredentials( host, userName, password, sshClient ):
+	try:
+		sshClient.connect( host, username = userName, password = password )
+	except socket.error as sock_err:
+		print("Socket Error - " + sock_err)
+		return 3
+	except paramiko.SSHException as miko_err:
+		print("Wrong credentials - " + str( miko_err ))
+		return 1
+	return 0
 
-result = os.read(fd, 100)
-
-print(result)
-
-os.close(fd)
+host = ''
+password = ''
