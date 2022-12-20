@@ -26,4 +26,4 @@ for interface in interface_list:
 
     print(ip_addr)
 
-print("\nThis is the end of script ~~~")
+print("\nThis is the end of script ~~~") 
