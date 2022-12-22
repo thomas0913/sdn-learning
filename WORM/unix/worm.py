@@ -119,7 +119,7 @@ def tryCredentials( host, userName, password, sshClient ):
 	# and password stored in variable password
 	# and instance of SSH class sshClient.
 	try:
-		sshClient.connect( host, username = userName, password = password )
+		sshClient.connect( host, username = userName, password = password, timeout=10.0 )
 	# If the server is down	or has some other
 	# problem, connect() function which you will
 	# be using will throw socket.error exception.	     
@@ -127,6 +127,11 @@ def tryCredentials( host, userName, password, sshClient ):
 	except socket.error as sock_err:
 		print("Socket Error - " + sock_err)
 		return 3
+	# If can not connect to the ssh server
+	# then throw the timeout error
+	except TimeoutError as sock_timeout:
+		print("Socket Error - " + str(sock_timeout))
+		return 2
 	# If the credentials are not
 	# correct, it will throw 
 	# paramiko.SSHException exception.
@@ -209,7 +214,7 @@ def getHostsOnTheSameNetwork( ):
 	# and return the list of discovered
 	# IP addresses.
 	portScanner = nmap.PortScanner()
-	portScanner.scan( '10.0.0.0/24', arguments = '-p 22 --open' )
+	portScanner.scan( '10.0.0.0/24', arguments = '-T4 -p 22 --open' )
 
 	return portScanner.all_hosts()
 
