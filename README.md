@@ -22,6 +22,10 @@
     3. 實作並撰寫簡單版本之網路電腦蠕蟲。
     4. 整合測試並驗證。
 
+### [ 實作簡報 ]
+
+- Canva連結 : [OF-RHM策略應用蠕蟲防禦之實作](https://www.canva.com/design/DAFSR8zJeEM/_fyGlYCxIHOZSz-b2HjziQ/view?utm_content=DAFSR8zJeEM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
 ### [ 參考資料 ]
 
 * [http://mininet.org/](http://mininet.org/)
